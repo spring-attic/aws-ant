@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry excluding="**/*.java" kind="src" path="src/main/resources"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
+	<classpathentry kind="src" path="src/test/resources"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="ivy-cache/repository/org.apache.ant/com.springsource.org.apache.tools.ant/1.7.0/com.springsource.org.apache.tools.ant-1.7.0.jar" sourcepath="ivy-cache/repository/org.apache.ant/com.springsource.org.apache.tools.ant/1.7.0/com.springsource.org.apache.tools.ant-sources-1.7.0.jar"/>
+	<classpathentry kind="lib" path="ivy-cache/repository/org.jets3t/com.springsource.org.jets3t/0.6.1/com.springsource.org.jets3t-0.6.1.jar" sourcepath="ivy-cache/repository/org.jets3t/com.springsource.org.jets3t/0.6.1/com.springsource.org.jets3t-sources-0.6.1.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
