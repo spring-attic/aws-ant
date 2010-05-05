@@ -27,8 +27,8 @@ import org.jets3t.service.security.AWSCredentials;
 
 /**
  * An ANT task for dealing with the Amazon S3 service. Requires properties to be
- * set for an <code>accessKey</code> and a <code>secretKey</code>. S3
- * operations are listed as elements contained in the s3 tag.
+ * set for an <code>accessKey</code> and a <code>secretKey</code>. S3 operations
+ * are listed as elements contained in the s3 tag.
  * 
  * <pre>
  * &lt;aws:s3 accessKey=&quot;${s3.accessKey}&quot; secretKey=&quot;${s3.secretKey}&quot;&gt;
@@ -52,7 +52,7 @@ public class SimpleStorageService {
 	private String secretKey;
 
 	private List<S3Operation> operations = new ArrayList<S3Operation>();
-	
+
 	/**
 	 * Required parameter that corresponds to the S3 Access Key
 	 * @param accessKey The S3 Access Key
@@ -83,6 +83,14 @@ public class SimpleStorageService {
 	 */
 	public void addConfiguredDownload(Download download) {
 		operations.add(download);
+	}
+
+	/**
+	 * Add any downloadLatest operations
+	 * @param download The downloadLatest operation metadata
+	 */
+	public void addConfiguredDownloadLatest(DownloadLatest downloadLatest) {
+		operations.add(downloadLatest);
 	}
 
 	/**
