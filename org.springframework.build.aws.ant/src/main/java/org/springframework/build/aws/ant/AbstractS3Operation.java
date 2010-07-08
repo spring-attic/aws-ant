@@ -86,7 +86,7 @@ public abstract class AbstractS3Operation implements S3Operation {
 		}
 
 		String unneededPath = project.getBaseDir().getCanonicalPath();
-		return normalizedPath.substring(unneededPath.length() + 1);
+		return normalizedPath.substring(unneededPath.length() + 1).replace('\\', '/');
 	}
 
 }
