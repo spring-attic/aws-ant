@@ -20,7 +20,7 @@
 
 	<dependencies>
 		<dependency org="org.apache.ant" name="com.springsource.org.apache.tools.ant" rev="1.7.0" conf="provided->compile"/>
-		<dependency org="org.jets3t" name="com.springsource.org.jets3t" rev="0.6.1" conf="compile->compile;runtime->runtime"/>
+		<dependency org="org.jets3t" name="com.springsource.org.jets3t" rev="0.8.1" conf="compile->compile;runtime->runtime"/>
 	</dependencies>
 
 </ivy-module>

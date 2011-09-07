@@ -26,56 +26,54 @@ import java.text.NumberFormat;
  */
 abstract class TransferUtils {
 
-	private static final float KILOBYTE = 1024;
+    private static final float KILOBYTE = 1024;
 
-	private static final float MEGABYTE = 1048576;
+    private static final float MEGABYTE = 1048576;
 
-	private static final float SECOND = 1000;
+    private static final float SECOND = 1000;
 
-	private static final NumberFormat formatter = new DecimalFormat("###,###.0");
-	
-	private TransferUtils() {
-	}
+    private static final NumberFormat formatter = new DecimalFormat("###,###.0");
 
-	public static String getFormattedSize(long size) {
-		StringBuilder sb = new StringBuilder();
-		float megabytes = size / MEGABYTE;
-		if (megabytes > 1) {
-			sb.append(formatter.format(megabytes));
-			sb.append(" MB");
-		}
-		else {
-			float kilobytes = size / KILOBYTE;
-			sb.append(formatter.format(kilobytes));
-			sb.append(" KB");
-		}
-		return sb.toString();
-	}
+    private TransferUtils() {
+    }
 
-	public static String getFormattedTime(long time) {
-		StringBuilder sb = new StringBuilder();
-		float seconds = time / SECOND;
-		sb.append(formatter.format(seconds));
-		sb.append(" s");
-		return sb.toString();
-	}
+    public static String getFormattedSize(long size) {
+        StringBuilder sb = new StringBuilder();
+        float megabytes = size / MEGABYTE;
+        if (megabytes > 1) {
+            sb.append(formatter.format(megabytes));
+            sb.append(" MB");
+        } else {
+            float kilobytes = size / KILOBYTE;
+            sb.append(formatter.format(kilobytes));
+            sb.append(" KB");
+        }
+        return sb.toString();
+    }
 
-	public static String getFormattedSpeed(long size, long time) {
-		StringBuilder sb = new StringBuilder();
-		float seconds = time / SECOND;
-		float megabytes = size / MEGABYTE;
-		float megabytesPerSecond = megabytes / seconds;
-		if (megabytesPerSecond > 1) {
-			sb.append(formatter.format(megabytesPerSecond));
-			sb.append(" MB/s");
-		}
-		else {
-			float kilobytes = size / KILOBYTE;
-			float kilobytesPerSecond = kilobytes / seconds;
-			sb.append(formatter.format(kilobytesPerSecond));
-			sb.append(" KB/s");
-		}
-		return sb.toString();
-	}
+    public static String getFormattedTime(long time) {
+        StringBuilder sb = new StringBuilder();
+        float seconds = time / SECOND;
+        sb.append(formatter.format(seconds));
+        sb.append(" s");
+        return sb.toString();
+    }
+
+    public static String getFormattedSpeed(long size, long time) {
+        StringBuilder sb = new StringBuilder();
+        float seconds = time / SECOND;
+        float megabytes = size / MEGABYTE;
+        float megabytesPerSecond = megabytes / seconds;
+        if (megabytesPerSecond > 1) {
+            sb.append(formatter.format(megabytesPerSecond));
+            sb.append(" MB/s");
+        } else {
+            float kilobytes = size / KILOBYTE;
+            float kilobytesPerSecond = kilobytes / seconds;
+            sb.append(formatter.format(kilobytesPerSecond));
+            sb.append(" KB/s");
+        }
+        return sb.toString();
+    }
 
 }
