@@ -24,67 +24,64 @@ import java.io.OutputStream;
 
 import org.apache.tools.ant.Project;
 import org.jets3t.service.S3Service;
-import org.jets3t.service.S3ServiceException;
+import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
 
 public abstract class AbstractS3DownloadOperation extends AbstractS3Operation {
 
-	private static final int BUFFER_SIZE = 64 * 1024;
+    private static final int BUFFER_SIZE = 64 * 1024;
 
-	protected void getFile(S3Service service, S3Bucket bucket, String key, File destination) throws S3ServiceException,
-			IOException {
-		InputStream in = null;
-		OutputStream out = null;
-		try {
-			if (!destination.getParentFile().exists()) {
-				destination.getParentFile().mkdirs();
-			}
+    protected void getFile(S3Service service, S3Bucket bucket, String key, File destination) throws ServiceException, IOException {
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            if (!destination.getParentFile().exists()) {
+                destination.getParentFile().mkdirs();
+            }
 
-			S3Object source = service.getObject(bucket, key);
-			in = source.getDataInputStream();
-			out = new FileOutputStream(destination);
+            S3Object source = service.getObject(bucket.getName(), key);
+            in = source.getDataInputStream();
+            out = new FileOutputStream(destination);
 
-			logStart(source, destination);
-			long startTime = System.currentTimeMillis();
-			byte[] buffer = new byte[BUFFER_SIZE];
-			int length;
-			while ((length = in.read(buffer)) != -1) {
-				out.write(buffer, 0, length);
-			}
-			long endTime = System.currentTimeMillis();
-			logEnd(source, startTime, endTime);
-		}
-		finally {
-			if (in != null) {
-				try {
-					in.close();
-				}
-				catch (IOException e) {
-					// Nothing to do at this point
-				}
-			}
-			if (out != null) {
-				try {
-					out.close();
-				}
-				catch (IOException e) {
-					// Nothing to do at this point
-				}
-			}
-		}
-	}
+            logStart(source, destination);
+            long startTime = System.currentTimeMillis();
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int length;
+            while ((length = in.read(buffer)) != -1) {
+                out.write(buffer, 0, length);
+            }
+            long endTime = System.currentTimeMillis();
+            logEnd(source, startTime, endTime);
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    // Nothing to do at this point
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    // Nothing to do at this point
+                }
+            }
+        }
+    }
 
-	private void logStart(S3Object source, File destination) throws IOException {
-		project.log("Downloading s3://" + source.getBucketName() + "/" + source.getKey() + " ("
-				+ TransferUtils.getFormattedSize(source.getContentLength()) + ") to " + destination.getCanonicalPath(),
-				Project.MSG_INFO);
-	}
+    private void logStart(S3Object source, File destination) throws IOException {
+        this.project.log(
+            "Downloading s3://" + source.getBucketName() + "/" + source.getKey() + " (" + TransferUtils.getFormattedSize(source.getContentLength())
+                + ") to " + destination.getCanonicalPath(), Project.MSG_INFO);
+    }
 
-	private void logEnd(S3Object source, long startTime, long endTime) {
-		long transferTime = endTime - startTime;
-		project.log("Transfer Time: " + TransferUtils.getFormattedTime(transferTime) + " - Transfer Rate: "
-				+ TransferUtils.getFormattedSpeed(source.getContentLength(), transferTime), Project.MSG_INFO);
-	}
+    private void logEnd(S3Object source, long startTime, long endTime) {
+        long transferTime = endTime - startTime;
+        this.project.log(
+            "Transfer Time: " + TransferUtils.getFormattedTime(transferTime) + " - Transfer Rate: "
+                + TransferUtils.getFormattedSpeed(source.getContentLength(), transferTime), Project.MSG_INFO);
+    }
 
 }

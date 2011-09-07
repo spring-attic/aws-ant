@@ -19,18 +19,19 @@ package org.springframework.build.aws.ant;
 import java.io.IOException;
 
 import org.jets3t.service.S3Service;
-import org.jets3t.service.S3ServiceException;
+import org.jets3t.service.ServiceException;
 
 /**
  * An generic execution interface for all of the S3 operations.
  */
 public interface S3Operation {
 
-	/**
-	 * Execute an S3 operation
-	 * @param service The S3 Service to execute against
-	 * @throws S3ServiceException
-	 * @throws IOException
-	 */
-	void execute(S3Service service) throws S3ServiceException, IOException;
+    /**
+     * Execute an S3 operation
+     * 
+     * @param service The S3 Service to execute against
+     * @throws S3ServiceException
+     * @throws IOException
+     */
+    void execute(S3Service service) throws ServiceException, IOException;
 }

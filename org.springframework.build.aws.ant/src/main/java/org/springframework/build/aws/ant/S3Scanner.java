@@ -27,90 +27,89 @@ import org.jets3t.service.model.S3Object;
 
 class S3Scanner {
 
-	private final S3Bucket bucket;
+    private final S3Bucket bucket;
 
-	private final String baseDirectory;
+    private final String baseDirectory;
 
-	private final List<String> includePatterns;
+    private final List<String> includePatterns;
 
-	private final List<String> excludePatterns;
+    private final List<String> excludePatterns;
 
-	/**
-	 * Creates a new instance of a scanner for an S3 repository.
-	 * @param bucket The bucket to scan in
-	 * @param baseDirectory The base 'directory' to scan in
-	 * @param inlcudePatterns The include patterns to scan for
-	 * @param excludePatterns The exclude patterns to scan for
-	 */
-	public S3Scanner(S3Bucket bucket, String baseDirectory, String[] includePatterns, String[] excludePatterns) {
-		this.bucket = bucket;
-		this.baseDirectory = baseDirectory;
+    /**
+     * Creates a new instance of a scanner for an S3 repository.
+     * 
+     * @param bucket The bucket to scan in
+     * @param baseDirectory The base 'directory' to scan in
+     * @param inlcudePatterns The include patterns to scan for
+     * @param excludePatterns The exclude patterns to scan for
+     */
+    public S3Scanner(S3Bucket bucket, String baseDirectory, String[] includePatterns, String[] excludePatterns) {
+        this.bucket = bucket;
+        this.baseDirectory = baseDirectory;
 
-		if (includePatterns == null || includePatterns.length == 0) {
-			this.includePatterns = normalizePatterns(new String[] { "**" });
-		}
-		else {
-			this.includePatterns = normalizePatterns(includePatterns);
-		}
+        if ((includePatterns == null) || (includePatterns.length == 0)) {
+            this.includePatterns = normalizePatterns(new String[] { "**" });
+        } else {
+            this.includePatterns = normalizePatterns(includePatterns);
+        }
 
-		if (excludePatterns == null) {
-			this.excludePatterns= normalizePatterns(new String[0]);
-		}
-		else {
-			this.excludePatterns = normalizePatterns(excludePatterns);
-		}
-	}
+        if (excludePatterns == null) {
+            this.excludePatterns = normalizePatterns(new String[0]);
+        } else {
+            this.excludePatterns = normalizePatterns(excludePatterns);
+        }
+    }
 
-	/**
-	 * Returns a list of keys that qualify the include and exclude patterns
-	 * specified.
-	 * @param service The S3 service to use for scanning
-	 * @return The list of qualifying keys
-	 * @throws S3ServiceException
-	 */
-	public List<String> getQualifiyingKeys(S3Service service) throws S3ServiceException {
-		List<String> qualifying = new ArrayList<String>();
+    /**
+     * Returns a list of keys that qualify the include and exclude patterns specified.
+     * 
+     * @param service The S3 service to use for scanning
+     * @return The list of qualifying keys
+     * @throws S3ServiceException
+     */
+    public List<String> getQualifiyingKeys(S3Service service) throws S3ServiceException {
+        List<String> qualifying = new ArrayList<String>();
 
-		S3Object[] candidates = service.listObjects(bucket, baseDirectory, "");
-		for (S3Object candidate : candidates) {
-			String trimmedCandidate = candidate.getKey().substring(baseDirectory.length());
-			if (matchesInclude(trimmedCandidate) && !matchesExclude(trimmedCandidate)) {
-				qualifying.add(candidate.getKey());
-			}
-		}
+        S3Object[] candidates = service.listObjects(this.bucket.getName(), this.baseDirectory, "");
+        for (S3Object candidate : candidates) {
+            String trimmedCandidate = candidate.getKey().substring(this.baseDirectory.length());
+            if (matchesInclude(trimmedCandidate) && !matchesExclude(trimmedCandidate)) {
+                qualifying.add(candidate.getKey());
+            }
+        }
 
-		return qualifying;
-	}
+        return qualifying;
+    }
 
-	private List<String> normalizePatterns(String[] patterns) {
-		List<String> normalizedPatterns = new ArrayList<String>(patterns.length);
-		for (String pattern : patterns) {
-			normalizedPatterns.add(normalizePattern(pattern));
-		}
-		return normalizedPatterns;
-	}
+    private List<String> normalizePatterns(String[] patterns) {
+        List<String> normalizedPatterns = new ArrayList<String>(patterns.length);
+        for (String pattern : patterns) {
+            normalizedPatterns.add(normalizePattern(pattern));
+        }
+        return normalizedPatterns;
+    }
 
-	private String normalizePattern(String pattern) {
-		if (pattern.endsWith("/")) {
-			return pattern + "**";
-		}
-		return pattern;
-	}
+    private String normalizePattern(String pattern) {
+        if (pattern.endsWith("/")) {
+            return pattern + "**";
+        }
+        return pattern;
+    }
 
-	private boolean matchesInclude(String candidate) {
-		return matches(includePatterns, candidate);
-	}
+    private boolean matchesInclude(String candidate) {
+        return matches(this.includePatterns, candidate);
+    }
 
-	private boolean matchesExclude(String candidate) {
-		return matches(excludePatterns, candidate);
-	}
+    private boolean matchesExclude(String candidate) {
+        return matches(this.excludePatterns, candidate);
+    }
 
-	private boolean matches(List<String> patterns, String candidate) {
-		for (String pattern : patterns) {
-			if (SelectorUtils.matchPath(pattern, candidate)) {
-				return true;
-			}
-		}
-		return false;
-	}
+    private boolean matches(List<String> patterns, String candidate) {
+        for (String pattern : patterns) {
+            if (SelectorUtils.matchPath(pattern, candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
