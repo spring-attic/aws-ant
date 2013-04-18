@@ -1,3 +1,0 @@
-[submodule "spring-build"]
-	path = spring-build
-	url = git://git.springsource.org/spring-build/spring-build.git
