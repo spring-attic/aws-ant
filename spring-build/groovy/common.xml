@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Copyright 2010 SpringSource
+   
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+   
+       http://www.apache.org/licenses/LICENSE-2.0
+   
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project name="common-groovy">
+
+	<import file="../common/common.xml"/>
+
+<!-- Other Targets -->
+	<target name="src.init">
+		<condition property="src.exists">
+			<resourcecount when="gt" count="0">
+				<fileset dir="${main.groovy.dir}" erroronmissingdir="false">
+					<include name="**/*.groovy"/>
+					<include name="*.groovy"/>
+				</fileset>
+			</resourcecount>
+		</condition>
+	</target>
+
+	<target name="test.init">
+		<condition property="test.exists">
+			<resourcecount when="gt" count="0">
+				<fileset dir="${test.groovy.dir}" erroronmissingdir="false">
+					<include name="**/*.groovy"/>
+					<include name="*.groovy"/>
+				</fileset>
+			</resourcecount>
+		</condition>
+	</target>
+
+<!-- Macros -->
+	<macrodef name="do-compile">
+		<attribute name="classpath.id"/>
+		<attribute name="input.dir"/>
+		<attribute name="output.dir"/>
+		<attribute name="resources.dir"/>
+		<sequential>
+			<groovyc srcdir="@{input.dir}" destdir="@{output.dir}">
+				<classpath refid="@{classpath.id}"/>
+			</groovyc>
+			<copy todir="@{output.dir}">
+				<fileset dir="@{input.dir}" erroronmissingdir="false">
+					<exclude name="**/*.groovy"/>
+					<exclude name="*.groovy"/>
+				</fileset>
+			</copy>
+			<copy todir="@{output.dir}">
+				<fileset dir="@{resources.dir}" erroronmissingdir="false"/>
+			</copy>
+		</sequential>
+	</macrodef>
+
+</project>
