@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 SpringSource
+ * Copyright 2010, 2013 SpringSource
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,14 @@ import org.jets3t.service.ServiceException;
 import org.jets3t.service.acl.AccessControlList;
 import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
+import org.jets3t.service.multi.SimpleThreadedStorageService;
 
 /**
  * A member of the S3 ANT task for dealing with Amazon S3 upload behavior. This operation will use the credentials setup
  * in its parent S3 task tag.
  * 
  * @author Ben Hale
+ * @author Martin Lippert
  */
 public class Upload extends AbstractS3Operation {
 
@@ -51,6 +53,8 @@ public class Upload extends AbstractS3Operation {
     private String toFile;
 
     private boolean publicRead = false;
+
+    private boolean multithreaded = false;
 
     private final Set<Metadata> metadatas = new HashSet<Metadata>();
 
@@ -109,6 +113,15 @@ public class Upload extends AbstractS3Operation {
     }
 
     /**
+     * Optional parameter that corresponds to multithreaded upload of all the S3 objects. Defaults to false.
+     * 
+     * @param multithreaded
+     */
+    public void setMultithreaded(boolean multithreaded) {
+        this.multithreaded = multithreaded;
+    }
+
+    /**
      * Verify that required parameters have been set
      */
     public void init() {
@@ -143,14 +156,22 @@ public class Upload extends AbstractS3Operation {
     }
 
     private void processFileToFile(S3Service service) throws ServiceException, IOException {
-        putFile(service, new S3Bucket(this.bucketName), this.file, this.toFile);
+        putFile(service, getOperationBucket(), this.file, this.toFile);
     }
 
     private void processFileToDir(S3Service service) throws ServiceException, IOException {
-        putFile(service, new S3Bucket(this.bucketName), this.file, this.toDir + "/" + this.file.getName());
+        putFile(service, getOperationBucket(), this.file, this.toDir + "/" + this.file.getName());
     }
 
     private void processSetToDir(S3Service service) throws ServiceException, IOException {
+        if (this.multithreaded) {
+            processSetToDirMultiThreaded(service);
+        } else {
+            processSetToDirSingleThreaded(service);
+        }
+    }
+
+    private void processSetToDirSingleThreaded(S3Service service) throws ServiceException, IOException {
         for (FileSet fileSet : this.fileSets) {
             DirectoryScanner ds = fileSet.getDirectoryScanner(this.project);
             String[] includedFiles = ds.getIncludedFiles();
@@ -160,7 +181,48 @@ public class Upload extends AbstractS3Operation {
         }
     }
 
+    private void processSetToDirMultiThreaded(S3Service service) throws ServiceException, IOException {
+        List<S3Object> s3objects = new ArrayList<S3Object>();
+        long totalLength = 0;
+
+        this.project.log("Collecting objects for multithreaded upload to s3://" + getOperationBucket().getName(), Project.MSG_INFO);
+
+        for (FileSet fileSet : this.fileSets) {
+            DirectoryScanner ds = fileSet.getDirectoryScanner(this.project);
+            String[] includedFiles = ds.getIncludedFiles();
+            for (String file : includedFiles) {
+                File sourceFile = new File(ds.getBasedir(), file);
+                S3Object s3Object = createS3Object(service, getOperationBucket(), sourceFile, this.toDir + "/" + file);
+                s3objects.add(s3Object);
+                totalLength += sourceFile.length();
+
+                logStart(sourceFile, s3Object);
+            }
+        }
+        putFiles(service, getOperationBucket(), s3objects.toArray(new S3Object[s3objects.size()]), totalLength);
+    }
+
     private void putFile(S3Service service, S3Bucket bucket, File source, String key) throws ServiceException, IOException {
+        S3Object destination = createS3Object(service, bucket, source, key);
+
+        logStart(source, destination);
+        long startTime = System.currentTimeMillis();
+        service.putObject(bucket, destination);
+        long endTime = System.currentTimeMillis();
+        logEnd(source.length(), startTime, endTime);
+    }
+
+    private void putFiles(S3Service service, S3Bucket bucket, S3Object[] s3objects, long totalLength) throws ServiceException {
+        SimpleThreadedStorageService multiService = new SimpleThreadedStorageService(service);
+
+        this.project.log("Starting multithreaded upload of " + s3objects.length + " objects to s3://" + bucket.getName(), Project.MSG_INFO);
+        long startTime = System.currentTimeMillis();
+        multiService.putObjects(bucket.getName(), s3objects);
+        long endTime = System.currentTimeMillis();
+        logEnd(totalLength, startTime, endTime);
+    }
+
+    private S3Object createS3Object(S3Service service, S3Bucket bucket, File source, String key) throws ServiceException, IOException {
         buildDestinationPath(service, bucket, getDestinationPath(key));
 
         S3Object destination = new S3Object(bucket, key);
@@ -173,12 +235,7 @@ public class Upload extends AbstractS3Operation {
         for (Metadata metadata : this.metadatas) {
             destination.addMetadata(metadata.getName(), metadata.getValue());
         }
-
-        logStart(source, destination);
-        long startTime = System.currentTimeMillis();
-        service.putObject(bucket, destination);
-        long endTime = System.currentTimeMillis();
-        logEnd(source, startTime, endTime);
+        return destination;
     }
 
     private String getDestinationPath(String destination) {
@@ -208,10 +265,10 @@ public class Upload extends AbstractS3Operation {
             + destination.getBucketName() + "/" + destination.getKey(), Project.MSG_INFO);
     }
 
-    private void logEnd(File source, long startTime, long endTime) {
+    private void logEnd(long sourceLength, long startTime, long endTime) {
         long transferTime = endTime - startTime;
         this.project.log(
             "Transfer Time: " + TransferUtils.getFormattedTime(transferTime) + " - Transfer Rate: "
-                + TransferUtils.getFormattedSpeed(source.length(), transferTime), Project.MSG_INFO);
+                + TransferUtils.getFormattedSpeed(sourceLength, transferTime), Project.MSG_INFO);
     }
 }
